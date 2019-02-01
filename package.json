@@ -1,0 +1,30 @@
+{
+  "name": "tetrapod",
+  "version": "1.0.0",
+  "description": "😊 Improved swear word detection module",
+  "main": "tetrapod.js",
+  "scripts": {
+    "lint": "eslint *.js --fix",
+    "build": "webpack --config webpack.config.js",
+    "test": "node --no-warnings --no-deprecation ./node_modules/@babel/node/bin/babel-node.js ./test/find.js",
+    "bias": "node --no-warnings --no-deprecation ./node_modules/@babel/node/bin/babel-node.js ./bias/build.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.5",
+    "@babel/node": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/preset-env": "^7.1.5",
+    "@babel/runtime": "^7.1.5",
+    "babel-loader": "^8.0.4",
+    "chalk": "^2.4.1",
+    "clone": "^2.1.2",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "author": "hmmhmmhm <hmmhmmhm@naver.com>",
+  "license": "MIT",
+  "dependencies": {
+    "hangul-js": "^0.2.5"
+  }
+}
