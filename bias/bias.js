@@ -110,8 +110,12 @@ export default class Bias {
                             console.log(`2함수진행됨: ${varName}`)
                             let parsedHeaderVariable = Bias.recursiveList(nonParsedVariable[varName], nonParsedVariable, true)
                             data[i] = data[i].concat(parsedHeaderVariable)
+                            console.log(`2함수결과:`)
+                            console.log(parsedHeaderVariable.length)
+                            if(parsedHeaderVariable.length == 0)
+                                throw new Error (`${varName} 변수를 찾을 수 없습니다. 또는 변수 내부 길이가 0입니다.`)
                         }else{
-                            throw new Error (`nonParsedVariable 전해받지 못함, ${varName}을 찾을 수 없습니다.`)
+                            throw new Error (`nonParsedVariable 전해받지 못함, ${varName} 변수를 찾을 수 없습니다.`)
                         }
                     }
                     data[i][itemIndex] = null
@@ -372,13 +376,15 @@ export default class Bias {
                             // 객체 내 동일한 데이터 키를 쓰려는
                             // 서로다른 데이터가 발생한 경우 이를 오류로 간주합니다.
                             if(typeof collectData[topIndex][itemIndex] !== 'undefined')
-                                throw new Error('중첩된 데이터 지정발생')
+                                throw new Error(`중첩된 데이터 지정발생: ${itemIndex}(${filePath})`)
                             collectData[topIndex][itemIndex] = fileData[topIndex][itemIndex]
                         }
                     }
                 }
             }
 
+            console.log(`수집된 변수목록:`)
+            console.log(Object.keys(collectData.var))
             let code = Bias.recursiveList(collectData.code, collectData.var)
             console.log('after process start')
 
