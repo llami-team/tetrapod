@@ -7,7 +7,8 @@
     "lint": "eslint *.js --fix",
     "build": "webpack --config webpack.config.js",
     "test": "node --no-warnings --no-deprecation ./node_modules/@babel/node/bin/babel-node.js ./test/find.js",
-    "bias": "node --no-warnings --no-deprecation ./node_modules/@babel/node/bin/babel-node.js ./bias/build.js"
+    "bias": "node --no-warnings --no-deprecation ./node_modules/@babel/node/bin/babel-node.js ./bias/build.js",
+    "input": "node --no-warnings --no-deprecation ./node_modules/@babel/node/bin/babel-node.js ./bias/input.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",

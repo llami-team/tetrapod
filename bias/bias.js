@@ -518,8 +518,7 @@ export default class Bias {
             horizonVowel: '',
             finalConsonant: ''
         }
-        console.log(input)
-        console.log(chars)
+
         for(let char of chars[0]){
             if(parsed.initialConsonant.length == 0 && Hangul.isCho(char)){
                 parsed.initialConsonant += char
@@ -538,6 +537,6 @@ export default class Bias {
         }
         if(parsed.finalConsonant.length != 0)
             parsed.finalConsonant = Hangul.assemble(parsed.finalConsonant)
-        console.log(parsed)
+        return parsed
     }
 }

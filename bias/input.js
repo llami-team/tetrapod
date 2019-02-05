@@ -1,4 +1,7 @@
-const readline = require('readline')
+import Hangul from 'hangul-js'
+import Bias from './bias'
+import readline from 'readline'
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -17,13 +20,15 @@ class InputProcess{
     }
 
     process(input){
-
         // 수정하고자 하는 패키지명
         if(this.packageName === null){
             if(input.length == 0){
                 console.log(`패키지명을 입력해주세요. (예: kr-badwords)`)
                 return
             }else{
+                // TODO 폴더 존재여부 확인 
+                // 없으면 폴더 별개 생성 요청
+
                 this.packageName = input
                 console.log(`패키지명이 입력되었습니다. (${this.packageName})`)
                 input = ''
@@ -69,7 +74,7 @@ class InputProcess{
                     codaExistAllow: null,
 
                     // 모든 구성진행이 완료되었는지ㅣ
-                    isFinished = false
+                    isFinished: false
                 }
             }
 
@@ -104,26 +109,239 @@ class InputProcess{
                 }
             }
 
-            // 초성만으로 존재가능한지
-            if(charOption.onsetIndependent === null){
-                if(answer === null){
-                    console.log(`${char} 가 초성만 있어도 단어로 탐지될 수 있습니까? [Y/N]`)
-                    /**
-                     * @TODO
-                     * 한글 자모를 Hangul.js 로 조각낸 뒤 초성만 확인
-                     */
-                    console.log(`예:`)
-                    return
+            // 글자 파싱
+            let parsed = Bias.hangulParse(char)
+
+            // PROCESS 1
+            // 초성만으로 탐지가 가능한지
+            if(parsed.initialConsonant.length === 0){
+
+                // 입력된 글자에 초성이 없을때
+                // 초성만으로 탐지 여부는 false
+                charOption.onsetIndependent = false
+            }else{
+
+                // 입력된 글자에 초성이 존재할때
+                // 초성만으로 탐지가 가능한지
+                if(charOption.onsetIndependent === null){
+                    if(answer === null){
+                        console.log(`글자 '${char}' 가 초성만 있어도 사람이 해당 단어를 인지 가능합니까? [Y/N]`)
+                        console.log(`예: ${parsed.initialConsonant}`)
+                        return
+                    }else{
+                        charOption.onsetIndependent = answer
+                        answer = null
+                    }
+                }
+            }
+
+            // PROCESS 2
+            // 중성에서 수직모음이 들어갈 수 있는지
+            if(parsed.initialConsonant.length == 0 &&
+                parsed.horizonVowel.length == 0){
+
+                // 초성 또는 수평모음 둘 다 존재하지 않을때
+                // 만능 수직모음 사용 여부는 false
+                charOption.nucleusVerticality = false
+            }else{
+
+                // 초성 또는 수평모음 둘중하나라도 존재할 경우
+                // 중성에서 수직모음이 들어갈 수 있는지
+                if(charOption.nucleusVerticality === null){
+                    if(answer === null){
+                        console.log(`글자 '${char}' 의 중성에 수직모음이 들어갈 수 있습니까? [Y/N]`)
+
+                        let exDef = []
+                        if(parsed.initialConsonant.length != 0)
+                            exDef.push(parsed.initialConsonant)
+                        if(parsed.horizonVowel.length != 0)
+                            exDef.push(parsed.horizonVowel)
+
+                        let exDefAfter = []
+                        if(parsed.finalConsonant.length != 0)
+                            exDefAfter.push(parsed.finalConsonant)
+
+                        let exA = Hangul.assemble([...exDef, 'ㅣ', ...exDefAfter])
+                        let exB = Hangul.assemble([...exDef, 'ㅑ', ...exDefAfter])
+                        let exC = Hangul.assemble([...exDef, 'ㅓ', ...exDefAfter])
+                        let exD = Hangul.assemble([...exDef, 'ㅖ', ...exDefAfter])
+
+                        console.log(`예: ${exA}, ${exB}, ${exC}, ${exD}... 등등`)
+                        return
+                    }else{
+                        charOption.nucleusVerticality = answer
+                        answer = null
+                    }
+                }
+            }
+
+            // PROCESS 3
+            // 중성에서 수평모음이 들어갈 수 있는지
+            if(parsed.initialConsonant.length == 0 &&
+                parsed.verticalVowel.length == 0){
+
+                // 초성 또는 수직모음 둘 다 존재하지 않을때
+                // 만능 수평모음 사용 여부는 false
+                charOption.nucleusHorizontal = false
+
+            }else{
+
+                // 초성 또는 수직모음 둘중하나라도 존재할 경우
+                // 중성에서 수평모음이 들어갈 수 있는지
+                if(charOption.nucleusHorizontal === null){
+                    if(answer === null){
+                        console.log(`글자 '${char}' 의 중성에 수평모음이 들어갈 수 있습니까? [Y/N]`)
+
+                        let exDef = []
+                        if(parsed.initialConsonant.length != 0)
+                            exDef.push(parsed.initialConsonant)
+
+                        let exDefAfter = []
+                        if(parsed.finalConsonant.length != 0)
+                            exDefAfter.push(parsed.finalConsonant)
+
+                        let exA = Hangul.assemble([...exDef, 'ㅡ', ...exDefAfter])
+                        let exB = Hangul.assemble([...exDef, 'ㅗ', ...exDefAfter])
+                        let exC = Hangul.assemble([...exDef, 'ㅜ', ...exDefAfter])
+                        let exD = Hangul.assemble([...exDef, 'ㅠ', ...exDefAfter])
+
+                        /**
+                         * @TODO
+                         * 수직모음 전체예를 보여준 후,
+                         * y 또는 n 을 입력하게 하거나,
+                         * 필요한 수평모음 일부를 , 로 구분해서 입력하게 할 수 있도록
+                         */
+                        // 수직모음 전
+                        console.log(`예: ${exA}, ${exB}, ${exC}, ${exD}... 등등`)
+                        return
+                    }else{
+                        charOption.nucleusHorizontal = answer
+                        answer = null
+                    }
+                }
+            }
+
+            // PROCESS 4
+            // 중성에서 복합모음이 들어갈 수 있는지
+            if(parsed.initialConsonant.length === 0){
+
+                // 입력된 글자에 초성이 없을때
+                // 만능 복합모음 사용 여부는 false
+                charOption.nucleusComplex = false
+            }else{
+
+                // 입력된 글자에 초성이 존재할때
+                // 초성만으로 탐지가 가능한지
+                if(charOption.nucleusComplex === null){
+                    if(answer === null){
+                        console.log(`글자 '${char}' 의 중성에 복합모음이 사용될 수 있습니까? [Y/N]`)
+
+                        let exDef = []
+                        if(parsed.initialConsonant.length != 0)
+                            exDef.push(parsed.initialConsonant)
+
+                        let exDefAfter = []
+                        if(parsed.finalConsonant.length != 0)
+                            exDefAfter.push(parsed.finalConsonant)
+
+                        let exA = Hangul.assemble([...exDef, 'ㅡ', 'ㅣ', ...exDefAfter])
+                        let exB = Hangul.assemble([...exDef, 'ㅗ', 'ㅐ', ...exDefAfter])
+                        let exC = Hangul.assemble([...exDef, 'ㅜ', 'ㅔ', ...exDefAfter])
+                        let exD = Hangul.assemble([...exDef, 'ㅜ', 'ㅣ', ...exDefAfter])
+
+                        console.log(`예: ${exA}, ${exB}, ${exC}, ${exD}... 등등`)
+                        return
+                    }else{
+                        charOption.nucleusComplex = answer
+                        answer = null
+                    }
+                }
+            }
+
+            // PROCESS 5
+            // 종성에서 받침이 없는 경우도 허용되는지
+            if(parsed.initialConsonant.length === 0){
+
+                // 입력된 글자에 초성이 없을때
+                // 비어있는 받침표현 사용 여부는 false
+                charOption.codaEmptyAllow = false
+            }else{
+
+                // 입력된 글자에 초성이 존재할때
+                // 종성에서 받침이 없는 경우도 허용되는지
+                if(charOption.codaEmptyAllow === null){
+                    if(answer === null){
+                        console.log(`글자 '${char}' 의 종성에 받침이 없는 경우도 사람이 해당 단어를 인지 가능합니까? [Y/N]`)
+
+                        let exDef = []
+
+                        if(parsed.initialConsonant.length != 0)
+                            exDef.push(parsed.initialConsonant)
+
+                        let exA = Hangul.assemble([...exDef, 'ㅡ', 'ㅣ'])
+                        let exB = Hangul.assemble([...exDef, 'ㅗ', 'ㅐ'])
+                        let exC = Hangul.assemble([...exDef, 'ㅜ', 'ㅔ'])
+                        let exD = Hangul.assemble([...exDef, 'ㅜ', 'ㅣ'])
+
+                        console.log(`예: ${exA}, ${exB}, ${exC}, ${exD}... 등등`)
+                        return
+                    }else{
+                        charOption.codaEmptyAllow = answer
+                        answer = null
+                    }
+                }
+            }
+
+            // PROCESS 6
+            // 종성에서 받침이 있는 경우도 허용되는지
+            if(parsed.initialConsonant.length === 0){
+
+                // 입력된 글자에 초성이 없을때
+                // 비어있는 받침표현 사용 여부는 false
+                charOption.codaExistAllow = false
+            }else{
+
+                // 입력된 글자에 초성이 존재할때
+                // 종성에서 받침이 있는 경우도 허용되는지
+                if(charOption.codaExistAllow === null){
+                    if(answer === null){
+                        console.log(`글자 '${char}' 의 종성에 받침이 있는 경우도 단어로 사람이 해당 단어를 인지 가능합니까? [Y/N]`)
+
+                        let exDef = []
+
+                        if(parsed.initialConsonant.length != 0)
+                            exDef.push(parsed.initialConsonant)
+
+                        let exA = Hangul.assemble([...exDef, 'ㅡ', 'ㅣ', 'ㄱ'])
+                        let exB = Hangul.assemble([...exDef, 'ㅗ', 'ㅐ', 'ㅋ'])
+                        let exC = Hangul.assemble([...exDef, 'ㅜ', 'ㅔ', 'ㄹ'])
+                        let exD = Hangul.assemble([...exDef, 'ㅜ', 'ㅣ', 'ㅂ'])
+
+                        console.log(`예: ${exA}, ${exB}, ${exC}, ${exD}... 등등`)
+                        return
+                    }else{
+                        charOption.codaExistAllow = answer
+                        charOption.isFinished = true
+                        answer = null
+                    }
                 }
             }
         }
 
         // 모든 구성이 완료된 경우
+        console.log('모든 구성 완료')
+        console.log(charsOption)
+        
+        /**
+         * @TODO
+         * 실제 JSON 옵션 구성 후 저장
+         */
     }
 }
 
-process('')
+var inputProcess =  new InputProcess()
+inputProcess.process('')
 
 rl.on('line', (input) => {
-    process(input)
+    inputProcess.process(input)
 })
