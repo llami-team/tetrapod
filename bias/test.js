@@ -1,6 +1,6 @@
 const Hangul = require('hangul-js')
 
-function parse(input){
+function hangulParse(input){
     let verticalVowelSample = [
         "ㅏ",
         "ㅑ",
