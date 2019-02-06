@@ -89,23 +89,27 @@ class InputProcess{
 
             // 예 또는 아니요가 아닌 경우 다시입력 요구
             let answer = null
-            if(input.length !== 0){
-                switch(String(input).toLowerCase()){
-                    case 'y':
-                    case 'yes':
-                    case '예':
-                    case '네':
-                        answer = true
-                        break
-                    case 'n':
-                    case 'no':
-                    case '아니요':
-                    case '아뇨':
-                        answer = false
-                        break
-                    default:
-                        console.log('잘못된 입력입니다. Y 또는 N 을 입력해주세요.')
-                        return
+            let answerCheck = (onlyBoolean = true)=>{
+                if(input.length !== 0){
+                    switch(String(input).toLowerCase()){
+                        case 'y':
+                        case 'yes':
+                        case '예':
+                        case '네':
+                            answer = true
+                            break
+                        case 'n':
+                        case 'no':
+                        case '아니요':
+                        case '아뇨':
+                            answer = false
+                            break
+                        default:
+                            if(onlyBoolean){
+                                console.log('잘못된 입력입니다. Y 또는 N 을 입력해주세요.')
+                                return
+                            }
+                    }
                 }
             }
 
@@ -200,19 +204,36 @@ class InputProcess{
                         if(parsed.finalConsonant.length != 0)
                             exDefAfter.push(parsed.finalConsonant)
 
-                        let exA = Hangul.assemble([...exDef, 'ㅡ', ...exDefAfter])
-                        let exB = Hangul.assemble([...exDef, 'ㅗ', ...exDefAfter])
-                        let exC = Hangul.assemble([...exDef, 'ㅜ', ...exDefAfter])
-                        let exD = Hangul.assemble([...exDef, 'ㅠ', ...exDefAfter])
+                        let exHorizontalNucleus = [
+                            "ㅗ",
+                            "ㅛ",
+                            "ㅜ",
+                            "ㅠ",
+                            "ㅡ"
+                        ]
+
+                        let exHorizontalNucleusStr = ''
+                        for(let exHorizontalChar of exHorizontalNucleus){
+                            let isFirst = (exHorizontalNucleusStr.length == 0) ? true : false
+                            if(!isFirst) exHorizontalNucleusStr += ', '
+                            exHorizontalNucleusStr += Hangul.assemble([...exDef, exHorizontalChar, ...exDefAfter])
+                        }
 
                         /**
                          * @TODO
-                         * 수직모음 전체예를 보여준 후,
+                         * 수평모음 전체예를 보여준 후,
                          * y 또는 n 을 입력하게 하거나,
                          * 필요한 수평모음 일부를 , 로 구분해서 입력하게 할 수 있도록
                          */
-                        // 수직모음 전
-                        console.log(`예: ${exA}, ${exB}, ${exC}, ${exD}... 등등`)
+
+                        // 수평모음 전체를 보여주기
+                        console.log(`전체 수평모음 목록의 적용결과 다음과 같습니다.`)
+                        console.log(`만약 y를 입력하시면 아래의 모든 모음이 사용처리 됩니다.`)
+                        console.log(`수평모음 적용 예: ${exHorizontalNucleusStr}... 등등\n`)
+
+                        console.log(`그러나 위 모음 중 일부만 사용하고 싶은 경우,`)
+                        console.log(`사용할 모음들만 모아서 아래처럼 입력해주세요.`)
+                        console.log(`입력 예: ㅗ,ㅛ,ㅜ,ㅠ,ㅡ`)
                         return
                     }else{
                         charOption.nucleusHorizontal = answer
